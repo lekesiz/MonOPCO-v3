@@ -3,7 +3,7 @@ import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { FileText, Upload, Mail, LogOut, User } from 'lucide-react';
+import { FileText, Upload, Mail, LogOut, User, BarChart3, Calculator } from 'lucide-react';
 import { APP_TITLE } from '@/const';
 import NotificationCenter from '@/components/NotificationCenter';
 import { toast } from 'sonner';
@@ -89,7 +89,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mb-4">
@@ -142,6 +142,44 @@ export default function Dashboard() {
               <Link href="/emails">
                 <Button className="w-full">
                   Voir les emails
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
+              <CardTitle>Analytics</CardTitle>
+              <CardDescription>
+                Visualisez vos statistiques
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/analytics">
+                <Button className="w-full">
+                  Voir les analytics
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-teal-600 rounded-lg flex items-center justify-center mb-4">
+                <Calculator className="w-6 h-6 text-white" />
+              </div>
+              <CardTitle>Estimation OPCO</CardTitle>
+              <CardDescription>
+                Calculez vos droits de formation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/estimation-opco">
+                <Button className="w-full">
+                  Faire une estimation
                 </Button>
               </Link>
             </CardContent>

@@ -14,6 +14,8 @@ import Emails from "./pages/Emails";
 import DossierDetail from "./pages/DossierDetail";
 import EmailTemplates from "./pages/EmailTemplates";
 import Profile from "./pages/Profile";
+import Analytics from "./pages/Analytics";
+import EstimationOPCO from "./pages/EstimationOPCO";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -29,6 +31,8 @@ function Router() {
       <Route path={"/emails"} component={Emails} />
       <Route path={"/email-templates"} component={EmailTemplates} />
       <Route path={"/profile"} component={Profile} />
+      <Route path={"/analytics"} component={Analytics} />
+      <Route path={"/estimation-opco"} component={EstimationOPCO} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

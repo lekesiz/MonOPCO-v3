@@ -7,6 +7,7 @@ import { searchBySiret, searchBySiren } from "./pappers";
 import { sendWelcomeEmail, sendNewDocumentEmail, sendStatusChangeEmail, sendCustomEmail } from "./resend";
 import { protectedProcedure } from "./_core/trpc";
 import { createNotification, notifyNewDocument, notifyStatusChange, notifyNewDossier, notifyEmailSent } from "./notifications";
+import { calculerEstimationOPCO, genererEmailPreInscription } from "./opco-estimation";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -20,6 +21,36 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+
+  // OPCO Estimation router for automatic OPCO identification and estimation
+  opco: router({
+    calculerEstimation: protectedProcedure
+      .input(z.object({
+        siret: z.string().length(14),
+        nombreEmployes: z.number().int().positive(),
+      }))
+      .mutation(async ({ input }) => {
+        const estimation = await calculerEstimationOPCO(input.siret, input.nombreEmployes);
+        return estimation;
+      }),
+    
+    genererEmailPreInscription: protectedProcedure
+      .input(z.object({
+        siret: z.string(),
+        nomEntreprise: z.string(),
+        codeNaf: z.string(),
+        secteurActivite: z.string(),
+        nombreEmployes: z.number(),
+        masseSalarialeEstimee: z.number(),
+        opcoIdentifie: z.string(),
+        montantEstime: z.number(),
+        tauxContribution: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const emailContent = genererEmailPreInscription(input as any);
+        return emailContent;
+      }),
   }),
 
   // Pappers API router for company information lookup

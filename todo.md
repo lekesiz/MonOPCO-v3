@@ -321,3 +321,56 @@ CREATE TRIGGER email_templates_updated_at
 - [x] Ajouter remote GitHub
 - [x] Push initial
 - [ ] Créer .github/workflows pour CI/CD (optionnel)
+
+
+## 🆕 Phase 8: Finalisation Complète du Projet
+
+### Scripts SQL Supabase
+- [ ] Exécuter create_email_templates.sql
+- [ ] Exécuter create_notifications_table.sql
+- [ ] Exécuter create_notification_preferences.sql
+- [ ] Vérifier que toutes les tables sont créées correctement
+
+### Clés API Externes
+- [x] Ajouter OPENAI_API_KEY dans les secrets
+- [x] Ajouter ANTHROPIC_API_KEY dans les secrets
+- [x] Ajouter GOOGLE_API_KEY dans les secrets
+- [x] Documenter l'utilisation de chaque clé
+
+### Tableau de Bord Analytics
+- [x] Installer Chart.js ou Recharts
+- [x] Créer la page Analytics.tsx
+- [x] Graphique : Évolution mensuelle des dossiers
+- [x] Graphique : Évolution mensuelle des documents
+- [x] Graphique : Évolution mensuelle des emails
+- [x] Statistiques globales (total, moyenne, tendances)
+- [x] Filtres par période (7j, 30j, 3m, 1an, tout)
+
+### Fonctionnalité CORE : Estimation OPCO
+- [x] Créer table opco_estimations dans Supabase (SQL script prêt)
+- [x] Créer table opco_directory (liste des OPCO par secteur NAF)
+- [x] Endpoint tRPC pour estimation OPCO
+- [x] Intégration Pappers API pour récupérer secteur NAF
+- [x] Logique d'identification automatique de l'OPCO
+- [x] Calcul estimation des droits de formation
+- [x] Page EstimationOPCO.tsx avec formulaire
+- [x] Affichage des résultats d'estimation
+- [x] Bouton "Pré-inscription rapide à l'OPCO"
+- [x] Génération email à l'OPCO identifié
+
+### Tests End-to-End
+- [ ] Tests navigateur : Inscription utilisateur
+- [ ] Tests navigateur : Création dossier
+- [ ] Tests navigateur : Upload document
+- [ ] Tests navigateur : Envoi email
+- [x] Tests navigateur : Estimation OPCO (CORE) - PASSÉ avec succès
+- [ ] Tests navigateur : Analyticsation OPCO
+- [ ] Tests automatisés pour analytics
+- [ ] Validation complète du workflow utilisateur
+
+### Fonctionnalités Manquantes
+- [ ] Compléter les triggers de notifications manquants
+- [ ] Respecter les préférences dans useNotifications hook
+- [ ] Ajouter recherche globale dans le header
+- [ ] Améliorer la page d'accueil avec CTA clairs
+- [ ] Ajouter FAQ / Guide utilisateur
