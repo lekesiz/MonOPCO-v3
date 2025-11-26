@@ -11,6 +11,7 @@ import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { supabase } from '@/lib/supabase';
 import { Plus, FileText, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -27,6 +28,7 @@ type Dossier = {
 export default function Dossiers() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated, loading: authLoading } = useSupabaseAuth();
+  const notifications = useNotifications();
   const [dossiers, setDossiers] = useState<Dossier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,23 +74,28 @@ export default function Dossiers() {
     e.preventDefault();
 
     try {
-      const { error } = await supabase.from('dossiers').insert([
+      const { data, error } = await supabase.from('dossiers').insert([
         {
           ...formData,
           user_id: user?.id,
         },
-      ]);
+      ]).select().single();
 
       if (error) throw error;
 
-      toast.success('Dossier créé avec succès!');
+      // Trigger notification (toast + DB + email)
+      if (data) {
+        await notifications.notifyNewDossier({
+          dossierName: formData.titre,
+          dossierId: data.id,
+        });
+      }
+
       setIsCreateDialogOpen(false);
       setFormData({ titre: '', description: '', statut: 'brouillon' });
       fetchDossiers();
     } catch (error: any) {
-      toast.error('Erreur de création', {
-        description: error.message,
-      });
+      notifications.error('Erreur de création', error.message);
     }
   };
 

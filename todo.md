@@ -214,3 +214,71 @@ CREATE TRIGGER email_templates_updated_at
 - [x] Afficher un aperçu des informations trouvées avant validation
 - [x] Permettre la modification manuelle après auto-remplissage
 - [x] Sauvegarder les données Pappers dans la base de données
+
+
+## 🆕 Phase 5: Intégration API Resend.com
+
+### Configuration API Resend
+- [x] Ajouter la clé API dans les secrets (RESEND_API_KEY)
+- [x] Créer un service client pour l'API Resend
+- [x] Configurer le domaine d'envoi (from email)
+- [x] Tester l'envoi basique d'email
+
+### Templates HTML Professionnels
+- [x] Template de bienvenue (inscription)
+- [ ] Template de confirmation d'email
+- [ ] Template de réinitialisation de mot de passe
+- [x] Template de notification (nouveau document)
+- [x] Template de changement de statut de dossier
+- [x] Template personnalisé (utilisant les templates DB)
+
+### Emails Transactionnels
+- [ ] Email de bienvenue après inscription
+- [ ] Email de confirmation d'email
+- [ ] Email de réinitialisation de mot de passe
+- [ ] Email de notification de nouveau document
+- [ ] Email de changement de statut de dossier
+
+### Intégration Workflow
+- [ ] Trigger email lors de la création d'un dossier
+- [ ] Trigger email lors de l'upload d'un document
+- [ ] Trigger email lors du changement de statut
+- [ ] Intégrer avec les templates d'emails existants en DB
+- [ ] Permettre l'envoi d'emails personnalisés depuis la page Emails
+
+### Fonctionnalités Avancées
+- [ ] Tracking des ouvertures d'emails
+- [ ] Tracking des clics dans les emails
+- [ ] File d'attente pour les envois en masse
+- [ ] Logs des emails envoyés
+- [ ] Gestion des erreurs d'envoi (bounce, spam)
+
+
+## 🆕 Phase 6: Système de Notifications Complet
+
+### Endpoints tRPC
+- [x] Endpoint pour créer une notification
+- [ ] Endpoint pour marquer comme lu
+- [ ] Endpoint pour supprimer une notification
+- [ ] Endpoint pour récupérer les notifications non lues
+- [x] Endpoint pour envoyer un email personnalisé
+
+### Triggers Automatiques
+- [x] Trigger: Création de dossier → Notification + Email
+- [x] Trigger: Upload de document → Notification + Email
+- [x] Trigger: Changement de statut → Notification + Email
+- [x] Trigger: Envoi d'email → Toast de confirmation
+- [x] Trigger: Inscription → Email de bienvenue
+
+### Amélioration Frontend
+- [x] Améliorer le NotificationCenter avec actions cliquables
+- [x] Ajouter des icônes personnalisées par type
+- [x] Implémenter le badge de compteur non-lus
+- [x] Ajouter des toasts pour feedback immédiat
+- [x] Créer un hook useNotifications centralisé
+
+### Intégration Emails Resend
+- [x] Intégrer sendWelcomeEmail lors de l'inscription
+- [x] Intégrer sendNewDocumentEmail lors de l'upload
+- [x] Intégrer sendStatusChangeEmail lors du changement de statut
+- [x] Créer un endpoint pour emails personnalisés avec templates DB
