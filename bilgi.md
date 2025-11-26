@@ -341,3 +341,202 @@ serve(async (req) => {
 ### Sonraki Adım
 
 Bu yapıyı onaylıyorsanız, öncelikle **Supabase Veritabanı SQL dosyasını** (Schema creation script) hazırlayarak projeye başlayabilirim. İster misiniz?
+
+Harika, onayınız için teşekkürler.
+
+Aşağıda, **MonOPCO.fr** projesi için **Supabase Dashboard -\> SQL Editor** kısmında çalıştırıp tüm veritabanı altyapısını kuracak olan SQL komut dosyası (script) bulunmaktadır.
+
+Bu script şunları yapar:
+
+1.  Gerekli tabloları (Şirketler, Kullanıcılar, Dosyalar, Dokümanlar, Loglar) oluşturur.
+2.  B2B güvenliği için **RLS (Row Level Security)** politikalarını kurar.
+3.  Kullanıcı kayıt olduğunda otomatik profil oluşturan tetikleyicileri (trigger) ekler.
+
+-----
+
+### 🛠️ Supabase Database Kurulum Scripti (v1.0)
+
+Bu kodu kopyalayıp Supabase SQL Editor alanına yapıştırın ve **Run** butonuna basın.
+
+```sql
+-- 1. Temel Kurulum ve Enum'lar
+create extension if not exists "uuid-ossp";
+
+-- Kullanıcı Rolleri
+create type user_role as enum ('admin', 'company_admin', 'employee');
+
+-- Dosya (Folder) Durumları
+create type folder_status as enum ('draft', 'signature_pending', 'signed', 'opco_submitted', 'in_progress', 'completed', 'cancelled');
+
+-- Doküman Tipleri
+create type document_type as enum ('convention', 'programme', 'devis', 'emargement', 'facture', 'certificat', 'other');
+
+-- 2. Tabloların Oluşturulması
+
+-- Şirketler Tablosu (Pappers Verisi İçin)
+create table companies (
+  id uuid primary key default uuid_generate_v4(),
+  siret text unique not null,
+  name text not null,
+  address jsonb, -- {street, city, zip, etc.}
+  naf_code text,
+  opco_name text, -- Otomatik tespit edilen OPCO
+  legal_representative jsonb, -- {name, email, role}
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Profiller Tablosu (Supabase Auth ile Senkronize)
+create table profiles (
+  id uuid references auth.users on delete cascade primary key,
+  email text unique not null,
+  full_name text,
+  role user_role default 'employee',
+  company_id uuid references companies(id) on delete set null,
+  phone text,
+  avatar_url text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Eğitim Dosyaları (Dossiers)
+create table folders (
+  id uuid primary key default uuid_generate_v4(),
+  company_id uuid references companies(id) on delete cascade not null,
+  employee_id uuid references profiles(id) on delete set null, -- Eğitimi alacak kişi
+  training_name text default 'Bilan de Compétences',
+  status folder_status default 'draft',
+  budget numeric(10, 2), -- Tahmini bütçe
+  start_date date,
+  end_date date,
+  training_hours int,
+  metadata jsonb, -- Ekstra veriler için
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Dokümanlar (PDF'ler ve Yousign Verileri)
+create table documents (
+  id uuid primary key default uuid_generate_v4(),
+  folder_id uuid references folders(id) on delete cascade not null,
+  type document_type not null,
+  name text not null,
+  storage_path text not null, -- Supabase Storage'daki yol
+  yousign_id text, -- İmza takibi için ID
+  is_valid boolean default false, -- AI veya Admin onayı
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Audit Logs (Qualiopi İçin Zorunlu Loglama)
+create table audit_logs (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references auth.users(id) on delete set null,
+  action text not null, -- Örn: "CREATE_CONVENTION", "SIGNATURE_COMPLETED"
+  target_table text,
+  target_id uuid,
+  details jsonb, -- Değişiklik detayları
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 3. Otomasyon Trigger'ları
+
+-- auth.users'a kayıt olunca otomatik profile satırı ekle
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, full_name, role)
+  values (new.id, new.email, new.raw_user_meta_data->>'full_name', 'employee'); 
+  -- Varsayılan rol employee, admin panelden değiştirilebilir.
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- updated_at alanını otomatik güncelleme fonksiyonu
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+    new.updated_at = now();
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger update_companies_modtime before update on companies for each row execute procedure update_updated_at_column();
+create trigger update_profiles_modtime before update on profiles for each row execute procedure update_updated_at_column();
+create trigger update_folders_modtime before update on folders for each row execute procedure update_updated_at_column();
+
+-- 4. RLS (Row Level Security) Güvenlik Politikaları
+-- Bu kısım çok önemlidir: Kimin neyi göreceğini belirler.
+
+alter table profiles enable row level security;
+alter table companies enable row level security;
+alter table folders enable row level security;
+alter table documents enable row level security;
+
+-- Politika Örnekleri (Basitleştirilmiş):
+
+-- PROFILES: Herkes kendi profilini görebilir. Adminler herkesi görür.
+create policy "Users can view own profile" on profiles
+  for select using (auth.uid() = id);
+
+create policy "Admins can view all profiles" on profiles
+  for all using (
+    exists (select 1 from profiles where id = auth.uid() and role = 'admin')
+  );
+
+-- COMPANIES: Şirket admini sadece kendi şirketini görür. Netz Admin hepsi.
+create policy "Company admin view own company" on companies
+  for select using (
+    exists (select 1 from profiles where id = auth.uid() and company_id = companies.id and role = 'company_admin')
+  );
+
+create policy "Admins view all companies" on companies
+  for all using (
+    exists (select 1 from profiles where id = auth.uid() and role = 'admin')
+  );
+
+-- FOLDERS: 
+-- 1. Çalışan sadece kendi dosyasını görür.
+-- 2. Şirket admini kendi şirketindeki dosyaları görür.
+-- 3. Netz admini hepsini görür.
+
+create policy "Employee view own folder" on folders
+  for select using (
+    exists (select 1 from profiles where id = auth.uid() and id = folders.employee_id)
+  );
+
+create policy "Company admin view company folders" on folders
+  for all using (
+    exists (select 1 from profiles where id = auth.uid() and company_id = folders.company_id and role = 'company_admin')
+  );
+
+create policy "Admins view all folders" on folders
+  for all using (
+    exists (select 1 from profiles where id = auth.uid() and role = 'admin')
+  );
+
+```
+
+-----
+
+### 📦 Sonraki Adım: Storage (Dosya Saklama) Kurulumu
+
+SQL scripti veritabanını kurdu. Şimdi PDF ve belgeleri saklamak için Supabase sol menüden **Storage** kısmına gidip şunları yapmalısınız:
+
+1.  **"Create new bucket"** butonuna basın.
+2.  İsim: `monopco-documents`
+3.  **Public bucket:** Kapalı (Off) olmalı (Güvenlik için).
+4.  **Policies:** Yeni bucket oluşunca "Configuration -\> Policies" sekmesinden şu kuralı ekleyin:
+      * *Authenticated users can upload.* (Giriş yapmış kullanıcı yükleyebilir).
+      * *Users can read their own documents.* (Bunu daha sonra RLS ile detaylandıracağız).
+
+### 🚀 Sırada Ne Var?
+
+Veritabanı hazır. Şimdi backend mantığını kurmak için **Edge Functions** (Pappers & Yousign entegrasyonu) aşamasına geçmeliyiz.
+
+**"Pappers API ile şirket verilerini çeken Edge Function kodunu hazırlamamı ister misiniz?"** yoksa doğrudan Frontend bağlantısına mı geçelim?
+
+
