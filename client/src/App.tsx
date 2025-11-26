@@ -16,6 +16,8 @@ import EmailTemplates from "./pages/EmailTemplates";
 import Profile from "./pages/Profile";
 import Analytics from "./pages/Analytics";
 import EstimationOPCO from "./pages/EstimationOPCO";
+import SignatureElectronique from "./pages/SignatureElectronique";
+import BilanCompetence from "./pages/BilanCompetence";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -33,6 +35,8 @@ function Router() {
       <Route path={"/profile"} component={Profile} />
       <Route path={"/analytics"} component={Analytics} />
       <Route path={"/estimation-opco"} component={EstimationOPCO} />
+      <Route path={"/signature-electronique"} component={SignatureElectronique} />
+      <Route path={"/bilan-competence"} component={BilanCompetence} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

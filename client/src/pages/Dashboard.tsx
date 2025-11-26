@@ -3,7 +3,7 @@ import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { FileText, Upload, Mail, LogOut, User, BarChart3, Calculator } from 'lucide-react';
+import { FileText, Upload, Mail, LogOut, User, BarChart3, Calculator, FileSignature, GraduationCap } from 'lucide-react';
 import { APP_TITLE } from '@/const';
 import NotificationCenter from '@/components/NotificationCenter';
 import { toast } from 'sonner';
@@ -180,6 +180,44 @@ export default function Dashboard() {
               <Link href="/estimation-opco">
                 <Button className="w-full">
                   Faire une estimation
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                <FileSignature className="w-6 h-6 text-white" />
+              </div>
+              <CardTitle>Signature Électronique</CardTitle>
+              <CardDescription>
+                Signez vos documents en ligne
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/signature-electronique">
+                <Button className="w-full">
+                  Créer une signature
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 border-orange-200">
+            <CardHeader>
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center mb-4">
+                <GraduationCap className="w-6 h-6 text-white" />
+              </div>
+              <CardTitle>Bilan de Compétences</CardTitle>
+              <CardDescription>
+                Découvrez votre potentiel avec l'IA
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/bilan-competence">
+                <Button className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700">
+                  En savoir plus
                 </Button>
               </Link>
             </CardContent>

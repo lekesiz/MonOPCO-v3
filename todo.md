@@ -374,3 +374,29 @@ CREATE TRIGGER email_templates_updated_at
 - [ ] Ajouter recherche globale dans le header
 - [ ] Améliorer la page d'accueil avec CTA clairs
 - [ ] Ajouter FAQ / Guide utilisateur
+
+
+## 🆕 Phase 9: Google OAuth, Yousign & Bilan Compétence
+
+### Google OAuth
+- [x] Vérifier la configuration Google OAuth dans Supabase
+- [x] Guide de configuration créé (docs/08-GOOGLE-OAUTH-SETUP.md)
+- [ ] Tester la connexion Google depuis le frontend (nécessite configuration manuelle)
+
+### Yousign API Integration
+- [x] Ajouter YOUSIGN_API_KEY dans les secrets
+- [x] Créer le service client Yousign
+- [x] Endpoint tRPC pour créer une signature request
+- [x] Endpoint tRPC pour ajouter des signataires
+- [x] Endpoint tRPC pour activer une signature request
+- [x] Endpoint tRPC pour récupérer le statut de signature
+- [x] Endpoint tRPC pour annuler une signature request
+- [x] Page frontend pour signature de documents
+- [x] Intégration dans le Dashboard
+- [x] Tests vitest pour Yousign API (3/3 passing)
+
+### Redirections Bilan Compétence
+- [x] Ajouter un lien vers bilancompetence.ai dans le Dashboard
+- [x] Créer une page d'information sur les bilans de compétences
+- [x] Redirection automatique vers bilancompetence.ai (5 secondes)
+- [x] Mentionner Netz Informatique comme fournisseur

@@ -8,6 +8,7 @@ import { sendWelcomeEmail, sendNewDocumentEmail, sendStatusChangeEmail, sendCust
 import { protectedProcedure } from "./_core/trpc";
 import { createNotification, notifyNewDocument, notifyStatusChange, notifyNewDossier, notifyEmailSent } from "./notifications";
 import { calculerEstimationOPCO, genererEmailPreInscription } from "./opco-estimation";
+import { createSignatureRequest, addSigner, activateSignatureRequest, getSignatureRequest, cancelSignatureRequest } from "./yousign";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -230,6 +231,60 @@ export const appRouter = router({
           subject: input.subject,
         });
         return { success: true };
+      }),
+  }),
+
+  // Yousign API router for electronic signature
+  yousign: router({
+    createSignatureRequest: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        deliveryMode: z.enum(["email", "none"]).optional(),
+        expiresAt: z.string().optional(),
+        timezone: z.string().optional(),
+        emailCustomNote: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await createSignatureRequest(input);
+      }),
+    
+    addSigner: protectedProcedure
+      .input(z.object({
+        signatureRequestId: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
+        email: z.string().email(),
+        phoneNumber: z.string().optional(),
+        signatureLevel: z.enum(["electronic_signature", "advanced_electronic_signature"]).optional(),
+        signatureAuthenticationMode: z.enum(["no_otp", "otp_sms", "otp_email"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await addSigner(input);
+      }),
+    
+    activateSignatureRequest: protectedProcedure
+      .input(z.object({
+        signatureRequestId: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        return await activateSignatureRequest(input.signatureRequestId);
+      }),
+    
+    getSignatureRequest: protectedProcedure
+      .input(z.object({
+        signatureRequestId: z.string(),
+      }))
+      .query(async ({ input }) => {
+        return await getSignatureRequest(input.signatureRequestId);
+      }),
+    
+    cancelSignatureRequest: protectedProcedure
+      .input(z.object({
+        signatureRequestId: z.string(),
+        reason: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await cancelSignatureRequest(input.signatureRequestId, input.reason);
       }),
   }),
 });
