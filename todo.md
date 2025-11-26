@@ -43,3 +43,29 @@
 - [ ] Advanced search
 - [ ] Analytics dashboard
 - [ ] Mobile responsive improvements
+
+
+## 🆕 Yeni Özellikler (Devam Eden)
+
+### Dossier Management
+- [x] Dossier listesi sayfası (tablo view)
+- [x] Dossier oluşturma formu
+- [ ] Dossier detay sayfası
+- [ ] Dossier düzenleme
+- [x] Dossier silme
+- [x] Dossier filtreleme ve arama
+
+### Document Upload & Storage
+- [x] Document upload component (drag-drop)
+- [x] Supabase Storage bucket konfigürasyonu
+- [x] Document listesi ve preview
+- [x] Document download
+- [x] Document silme
+- [x] File type validasyonu
+
+### Email Management
+- [x] Email gönderme formu
+- [ ] Email template yönetimi
+- [x] Gönderim geçmişi
+- [ ] Email tracking (açılma, tıklama)
+- [x] Email filtreleme ve arama

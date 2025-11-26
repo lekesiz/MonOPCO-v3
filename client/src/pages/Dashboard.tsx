@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -93,9 +93,11 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">
-                Voir les dossiers
-              </Button>
+              <Link href="/dossiers">
+                <Button className="w-full">
+                  Voir les dossiers
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -110,9 +112,11 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">
-                Gérer les documents
-              </Button>
+              <Link href="/documents">
+                <Button className="w-full">
+                  Gérer les documents
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -127,9 +131,11 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">
-                Voir les emails
-              </Button>
+              <Link href="/emails">
+                <Button className="w-full">
+                  Voir les emails
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
