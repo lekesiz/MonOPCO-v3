@@ -316,8 +316,8 @@ CREATE TRIGGER email_templates_updated_at
 - [x] Créer 07-DEVELOPMENT-GUIDE.md
 
 ### GitHub
-- [ ] Initialiser le repository Git
-- [ ] Configurer .gitignore
-- [ ] Ajouter remote GitHub
-- [ ] Push initial
+- [x] Initialiser le repository Git
+- [x] Configurer .gitignore
+- [x] Ajouter remote GitHub
+- [x] Push initial
 - [ ] Créer .github/workflows pour CI/CD (optionnel)
