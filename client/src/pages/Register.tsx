@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc';
 
 export default function Register() {
   const [, setLocation] = useLocation();
@@ -19,8 +20,12 @@ export default function Register() {
     nom: '',
     entreprise_siret: '',
     entreprise_nom: '',
+    entreprise_adresse: '',
+    entreprise_forme_juridique: '',
   });
   const [loading, setLoading] = useState(false);
+  const [searchingPappers, setSearchingPappers] = useState(false);
+  const searchBySiretMutation = trpc.pappers.searchBySiret.useMutation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -50,6 +55,8 @@ export default function Register() {
         nom: formData.nom,
         entreprise_siret: formData.entreprise_siret || undefined,
         entreprise_nom: formData.entreprise_nom || undefined,
+        entreprise_adresse: formData.entreprise_adresse || undefined,
+        entreprise_forme_juridique: formData.entreprise_forme_juridique || undefined,
       });
 
       if (error) {
@@ -154,6 +161,78 @@ export default function Register() {
 
             <div className="space-y-4 pt-4 border-t">
               <h3 className="text-sm font-medium text-muted-foreground">Informations entreprise (optionnel)</h3>
+              
+              {/* SIRET avec recherche automatique */}
+              <div className="space-y-2">
+                <Label htmlFor="entreprise_siret">SIRET</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="entreprise_siret"
+                    name="entreprise_siret"
+                    type="text"
+                    placeholder="12345678901234 (14 chiffres)"
+                    maxLength={14}
+                    value={formData.entreprise_siret}
+                    onChange={handleChange}
+                    disabled={loading || searchingPappers}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      if (!formData.entreprise_siret) {
+                        toast.error('Veuillez entrer un SIRET');
+                        return;
+                      }
+                      if (formData.entreprise_siret.length !== 14) {
+                        toast.error('Le SIRET doit contenir 14 chiffres');
+                        return;
+                      }
+                      
+                      setSearchingPappers(true);
+                      try {
+                        const result = await searchBySiretMutation.mutateAsync({
+                          siret: formData.entreprise_siret,
+                        });
+                        
+                        if (result.success && result.data) {
+                          const { data } = result;
+                          setFormData(prev => ({
+                            ...prev,
+                            entreprise_nom: data.nom_entreprise,
+                            entreprise_adresse: `${data.siege.adresse_ligne_1}, ${data.siege.code_postal} ${data.siege.ville}`,
+                            entreprise_forme_juridique: data.forme_juridique,
+                          }));
+                          toast.success('Informations récupérées avec succès!', {
+                            description: `${data.nom_entreprise} - ${data.forme_juridique}`,
+                          });
+                        } else {
+                          toast.error('Erreur', {
+                            description: result.error || 'Entreprise non trouvée',
+                          });
+                        }
+                      } catch (error: any) {
+                        toast.error('Erreur de recherche', {
+                          description: error.message,
+                        });
+                      } finally {
+                        setSearchingPappers(false);
+                      }
+                    }}
+                    disabled={loading || searchingPappers || !formData.entreprise_siret}
+                  >
+                    {searchingPappers ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Cliquez sur le bouton de recherche pour récupérer automatiquement les informations de l'entreprise
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="entreprise_nom">Nom de l'entreprise</Label>
                 <Input
@@ -166,15 +245,28 @@ export default function Register() {
                   disabled={loading}
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="entreprise_siret">SIRET</Label>
+                <Label htmlFor="entreprise_adresse">Adresse</Label>
                 <Input
-                  id="entreprise_siret"
-                  name="entreprise_siret"
+                  id="entreprise_adresse"
+                  name="entreprise_adresse"
                   type="text"
-                  placeholder="12345678901234"
-                  maxLength={14}
-                  value={formData.entreprise_siret}
+                  placeholder="123 Rue de la République, 75001 Paris"
+                  value={formData.entreprise_adresse}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="entreprise_forme_juridique">Forme juridique</Label>
+                <Input
+                  id="entreprise_forme_juridique"
+                  name="entreprise_forme_juridique"
+                  type="text"
+                  placeholder="SARL, SAS, EURL..."
+                  value={formData.entreprise_forme_juridique}
                   onChange={handleChange}
                   disabled={loading}
                 />

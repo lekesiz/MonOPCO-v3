@@ -54,6 +54,8 @@ export function useSupabaseAuth() {
     nom: string;
     entreprise_siret?: string;
     entreprise_nom?: string;
+    entreprise_adresse?: string;
+    entreprise_forme_juridique?: string;
   }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -72,6 +74,8 @@ export function useSupabaseAuth() {
         nom: metadata.nom,
         entreprise_siret: metadata.entreprise_siret,
         entreprise_nom: metadata.entreprise_nom,
+        entreprise_adresse: metadata.entreprise_adresse,
+        entreprise_forme_juridique: metadata.entreprise_forme_juridique,
         role: 'entreprise',
       });
     }

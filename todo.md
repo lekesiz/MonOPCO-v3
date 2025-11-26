@@ -191,3 +191,26 @@ CREATE TRIGGER email_templates_updated_at
 - [x] Ajouter un bouton "Exporter en PDF" dans la page de détail du dossier
 - [x] Générer un PDF bien formaté avec logo et style
 - [x] Télécharger automatiquement le PDF généré
+
+
+## 🆕 Phase 4: Intégration API Pappers
+
+### Configuration API Pappers
+- [x] Créer un service client pour l'API Pappers
+- [x] Ajouter la clé API dans les secrets (PAPPERS_API_KEY)
+- [x] Créer une fonction de recherche par SIRET
+- [x] Gérer les erreurs et les cas limites (SIRET invalide, entreprise non trouvée)
+
+### Intégration Frontend
+- [x] Ajouter un champ SIRET dans le formulaire d'inscription
+- [x] Bouton "Rechercher" pour récupérer les infos automatiquement
+- [x] Pré-remplir les champs: nom entreprise, adresse, forme juridique
+- [x] Afficher un loader pendant la recherche
+- [x] Afficher les erreurs si SIRET invalide ou non trouvé
+- [x] Intégrer dans la page Profile pour mise à jour
+
+### Améliorations UX
+- [x] Validation du format SIRET (14 chiffres)
+- [x] Afficher un aperçu des informations trouvées avant validation
+- [x] Permettre la modification manuelle après auto-remplissage
+- [x] Sauvegarder les données Pappers dans la base de données

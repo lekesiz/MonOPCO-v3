@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { supabase } from '@/lib/supabase';
-import { User, Mail, Building, Upload, Lock, Save, FileText, Send } from 'lucide-react';
+import { User, Mail, Building, Upload, Lock, Save, FileText, Send, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc';
 import { APP_TITLE } from '@/const';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -41,7 +42,11 @@ export default function Profile() {
     nom: '',
     entreprise_nom: '',
     entreprise_siret: '',
+    entreprise_adresse: '',
+    entreprise_forme_juridique: '',
   });
+  const [searchingPappers, setSearchingPappers] = useState(false);
+  const searchBySiretMutation = trpc.pappers.searchBySiret.useMutation();
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -77,6 +82,8 @@ export default function Profile() {
         nom: data.nom || '',
         entreprise_nom: data.entreprise_nom || '',
         entreprise_siret: data.entreprise_siret || '',
+        entreprise_adresse: data.entreprise_adresse || '',
+        entreprise_forme_juridique: data.entreprise_forme_juridique || '',
       });
     } catch (error: any) {
       toast.error('Erreur de chargement du profil', {
@@ -377,14 +384,100 @@ export default function Profile() {
 
                   <div className="space-y-2">
                     <Label htmlFor="entreprise_siret">SIRET</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="entreprise_siret"
+                          className="pl-10"
+                          value={formData.entreprise_siret}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, entreprise_siret: e.target.value })}
+                          maxLength={14}
+                          placeholder="14 chiffres"
+                          disabled={searchingPappers}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={async () => {
+                          if (!formData.entreprise_siret) {
+                            toast.error('Veuillez entrer un SIRET');
+                            return;
+                          }
+                          if (formData.entreprise_siret.length !== 14) {
+                            toast.error('Le SIRET doit contenir 14 chiffres');
+                            return;
+                          }
+                          
+                          setSearchingPappers(true);
+                          try {
+                            const result = await searchBySiretMutation.mutateAsync({
+                              siret: formData.entreprise_siret,
+                            });
+                            
+                            if (result.success && result.data) {
+                              const { data } = result;
+                              setFormData(prev => ({
+                                ...prev,
+                                entreprise_nom: data.nom_entreprise,
+                                entreprise_adresse: `${data.siege.adresse_ligne_1}, ${data.siege.code_postal} ${data.siege.ville}`,
+                                entreprise_forme_juridique: data.forme_juridique,
+                              }));
+                              toast.success('Informations récupérées!', {
+                                description: `${data.nom_entreprise} - ${data.forme_juridique}`,
+                              });
+                            } else {
+                              toast.error('Erreur', {
+                                description: result.error || 'Entreprise non trouvée',
+                              });
+                            }
+                          } catch (error: any) {
+                            toast.error('Erreur de recherche', {
+                              description: error.message,
+                            });
+                          } finally {
+                            setSearchingPappers(false);
+                          }
+                        }}
+                        disabled={searchingPappers || !formData.entreprise_siret}
+                      >
+                        {searchingPappers ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Cliquez sur le bouton de recherche pour récupérer automatiquement les informations
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="entreprise_adresse">Adresse</Label>
                     <div className="relative">
                       <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="entreprise_siret"
+                        id="entreprise_adresse"
                         className="pl-10"
-                        value={formData.entreprise_siret}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, entreprise_siret: e.target.value })}
-                        maxLength={14}
+                        value={formData.entreprise_adresse}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, entreprise_adresse: e.target.value })}
+                        placeholder="123 Rue de la République, 75001 Paris"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="entreprise_forme_juridique">Forme juridique</Label>
+                    <div className="relative">
+                      <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="entreprise_forme_juridique"
+                        className="pl-10"
+                        value={formData.entreprise_forme_juridique}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, entreprise_forme_juridique: e.target.value })}
+                        placeholder="SARL, SAS, EURL..."
                       />
                     </div>
                   </div>
