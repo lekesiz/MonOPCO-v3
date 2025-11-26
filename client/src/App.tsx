@@ -11,6 +11,9 @@ import Dashboard from "./pages/Dashboard";
 import Dossiers from "./pages/Dossiers";
 import Documents from "./pages/Documents";
 import Emails from "./pages/Emails";
+import DossierDetail from "./pages/DossierDetail";
+import EmailTemplates from "./pages/EmailTemplates";
+import Profile from "./pages/Profile";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -21,8 +24,11 @@ function Router() {
       <Route path={"/register"} component={Register} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/dossiers"} component={Dossiers} />
+      <Route path={"/dossiers/:id"} component={DossierDetail} />
       <Route path={"/documents"} component={Documents} />
       <Route path={"/emails"} component={Emails} />
+      <Route path={"/email-templates"} component={EmailTemplates} />
+      <Route path={"/profile"} component={Profile} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
