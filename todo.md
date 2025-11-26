@@ -282,3 +282,42 @@ CREATE TRIGGER email_templates_updated_at
 - [x] Intégrer sendNewDocumentEmail lors de l'upload
 - [x] Intégrer sendStatusChangeEmail lors du changement de statut
 - [x] Créer un endpoint pour emails personnalisés avec templates DB
+
+
+## 🆕 Phase 7: Préférences de Notifications + GitHub + Documentation
+
+### Préférences de Notifications
+- [x] Créer une table notification_preferences dans Supabase
+- [x] Ajouter une section dans Profile.tsx pour les préférences
+- [x] Toggle pour activer/désactiver les notifications toast
+- [x] Toggle pour activer/désactiver les notifications email
+- [x] Toggle pour activer/désactiver les notifications push
+- [x] Sauvegarder les préférences dans la base de données
+- [ ] Respecter les préférences dans useNotifications hook
+
+### README.md
+- [x] Introduction et description du projet
+- [x] Technologies utilisées
+- [x] Installation et configuration
+- [x] Structure du projet
+- [x] Fonctionnalités principales
+- [x] Screenshots
+- [x] Guide de déploiement
+- [x] Contribution et license
+
+### Documentation /docs
+- [x] Améliorer 00-TECHNICAL-SPECIFICATION.md
+- [x] Améliorer 01-DATABASE-SCHEMA.md
+- [x] Améliorer 02-NEW-FEATURES-GUIDE.md
+- [x] Améliorer 03-ADVANCED-FEATURES-GUIDE.md
+- [x] Améliorer 04-PAPPERS-API-INTEGRATION.md
+- [x] Améliorer 05-NOTIFICATION-SYSTEM.md
+- [x] Créer 06-DEPLOYMENT-GUIDE.md
+- [x] Créer 07-DEVELOPMENT-GUIDE.md
+
+### GitHub
+- [ ] Initialiser le repository Git
+- [ ] Configurer .gitignore
+- [ ] Ajouter remote GitHub
+- [ ] Push initial
+- [ ] Créer .github/workflows pour CI/CD (optionnel)

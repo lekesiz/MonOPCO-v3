@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { supabase } from '@/lib/supabase';
-import { User, Mail, Building, Upload, Lock, Save, FileText, Send, Search, Loader2 } from 'lucide-react';
+import { User, Mail, Building, Upload, Lock, Save, FileText, Send, Search, Loader2, Bell, BellOff } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { APP_TITLE } from '@/const';
@@ -47,6 +48,15 @@ export default function Profile() {
   });
   const [searchingPappers, setSearchingPappers] = useState(false);
   const searchBySiretMutation = trpc.pappers.searchBySiret.useMutation();
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    enable_toast: true,
+    enable_email: true,
+    enable_push: false,
+    notify_new_dossier: true,
+    notify_new_document: true,
+    notify_status_change: true,
+    notify_email_sent: true,
+  });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -63,6 +73,7 @@ export default function Profile() {
     if (user) {
       fetchProfile();
       fetchStats();
+      fetchNotificationPreferences();
     }
   }, [user]);
 
@@ -190,7 +201,58 @@ export default function Profile() {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
+  const fetchNotificationPreferences = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (data) {
+        setNotificationPrefs({
+          enable_toast: data.enable_toast ?? true,
+          enable_email: data.enable_email ?? true,
+          enable_push: data.enable_push ?? false,
+          notify_new_dossier: data.notify_new_dossier ?? true,
+          notify_new_document: data.notify_new_document ?? true,
+          notify_status_change: data.notify_status_change ?? true,
+          notify_email_sent: data.notify_email_sent ?? true,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching notification preferences:', error);
+    }
+  };
+
+  const handleNotificationPrefsChange = async (key: string, value: boolean) => {
+    const newPrefs = { ...notificationPrefs, [key]: value };
+    setNotificationPrefs(newPrefs);
+
+    try {
+      const { error } = await supabase
+        .from('notification_preferences')
+        .upsert({
+          user_id: user?.id,
+          ...newPrefs,
+        }, {
+          onConflict: 'user_id',
+        });
+
+      if (error) throw error;
+      toast.success('Préférences mises à jour');
+    } catch (error: any) {
+      toast.error('Erreur de mise à jour', {
+        description: error.message,
+      });
+      // Revert on error
+      setNotificationPrefs(notificationPrefs);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -490,14 +552,133 @@ export default function Profile() {
               </CardContent>
             </Card>
 
-            {/* Password Change Card */}
+            {/* Notification Preferences Card */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <Bell className="w-5 h-5 text-primary" />
+                  <CardTitle>Préférences de Notifications</CardTitle>
+                </div>
+                <CardDescription>Choisissez comment vous souhaitez être notifié</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Canaux de notification */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground">Canaux de notification</h3>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="enable_toast" className="text-base">Notifications Toast</Label>
+                      <p className="text-sm text-muted-foreground">Popup temporaire dans l'interface</p>
+                    </div>
+                    <Switch
+                      id="enable_toast"
+                      checked={notificationPrefs.enable_toast}
+                      onCheckedChange={(checked) => handleNotificationPrefsChange('enable_toast', checked)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="enable_email" className="text-base">Notifications Email</Label>
+                      <p className="text-sm text-muted-foreground">Recevoir des emails pour les événements importants</p>
+                    </div>
+                    <Switch
+                      id="enable_email"
+                      checked={notificationPrefs.enable_email}
+                      onCheckedChange={(checked) => handleNotificationPrefsChange('enable_email', checked)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="enable_push" className="text-base">Notifications Push</Label>
+                      <p className="text-sm text-muted-foreground">Notifications navigateur (bientôt disponible)</p>
+                    </div>
+                    <Switch
+                      id="enable_push"
+                      checked={notificationPrefs.enable_push}
+                      onCheckedChange={(checked) => handleNotificationPrefsChange('enable_push', checked)}
+                      disabled
+                    />
+                  </div>
+                </div>
+
+                <Separator className="my-6" />
+
+                {/* Types de notifications */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground">Types de notifications</h3>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="notify_new_dossier" className="text-base">Nouveau dossier</Label>
+                      <p className="text-sm text-muted-foreground">Notifier lors de la création d'un dossier</p>
+                    </div>
+                    <Switch
+                      id="notify_new_dossier"
+                      checked={notificationPrefs.notify_new_dossier}
+                      onCheckedChange={(checked) => handleNotificationPrefsChange('notify_new_dossier', checked)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="notify_new_document" className="text-base">Nouveau document</Label>
+                      <p className="text-sm text-muted-foreground">Notifier lors de l'upload d'un document</p>
+                    </div>
+                    <Switch
+                      id="notify_new_document"
+                      checked={notificationPrefs.notify_new_document}
+                      onCheckedChange={(checked) => handleNotificationPrefsChange('notify_new_document', checked)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="notify_status_change" className="text-base">Changement de statut</Label>
+                      <p className="text-sm text-muted-foreground">Notifier lors du changement de statut d'un dossier</p>
+                    </div>
+                    <Switch
+                      id="notify_status_change"
+                      checked={notificationPrefs.notify_status_change}
+                      onCheckedChange={(checked) => handleNotificationPrefsChange('notify_status_change', checked)}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="notify_email_sent" className="text-base">Email envoyé</Label>
+                      <p className="text-sm text-muted-foreground">Notifier lors de l'envoi d'un email</p>
+                    </div>
+                    <Switch
+                      id="notify_email_sent"
+                      checked={notificationPrefs.notify_email_sent}
+                      onCheckedChange={(checked) => handleNotificationPrefsChange('notify_email_sent', checked)}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Change Password Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Changer le mot de passe</CardTitle>
                 <CardDescription>Mettez à jour votre mot de passe</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleChangePassword} className="space-y-4">
+                <form onSubmit={handlePasswordChange} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">Nouveau mot de passe</Label>
                     <div className="relative">
