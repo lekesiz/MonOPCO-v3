@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { supabase } from '@/lib/supabase';
-import { Mail, Send, Search, Eye } from 'lucide-react';
+import { Mail, Send, Search, Eye, FileText, Sparkles } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -23,10 +24,20 @@ type Email = {
   user_id: string;
 };
 
+type EmailTemplate = {
+  id: string;
+  nom: string;
+  sujet: string;
+  corps: string;
+  placeholders: string[];
+};
+
 export default function Emails() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated, loading: authLoading } = useSupabaseAuth();
   const [emails, setEmails] = useState<Email[]>([]);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSendDialogOpen, setIsSendDialogOpen] = useState(false);
@@ -46,8 +57,24 @@ export default function Emails() {
   useEffect(() => {
     if (user) {
       fetchEmails();
+      fetchTemplates();
     }
   }, [user]);
+
+  const fetchTemplates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTemplates(data || []);
+    } catch (error: any) {
+      console.error('Error loading templates:', error);
+    }
+  };
 
   const fetchEmails = async () => {
     try {
@@ -68,16 +95,41 @@ export default function Emails() {
     }
   };
 
+  const replacePlaceholders = (text: string): string => {
+    if (!user) return text;
+
+    const replacements: Record<string, string> = {
+      '{{nom}}': user.user_metadata?.nom || user.user_metadata?.last_name || '',
+      '{{prenom}}': user.user_metadata?.prenom || user.user_metadata?.first_name || '',
+      '{{email}}': user.email || '',
+      '{{entreprise}}': user.user_metadata?.entreprise_nom || '',
+      '{{date}}': new Date().toLocaleDateString('fr-FR'),
+    };
+
+    let result = text;
+    Object.entries(replacements).forEach(([placeholder, value]) => {
+      result = result.replace(new RegExp(placeholder, 'g'), value);
+    });
+
+    return result;
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
 
     try {
+      // Replace placeholders in subject and body
+      const processedSubject = replacePlaceholders(formData.sujet);
+      const processedCorps = replacePlaceholders(formData.corps);
+
       // In a real app, you would send the email via an API
       // For now, we just save it to the database
       const { error } = await supabase.from('emails').insert([
         {
-          ...formData,
+          destinataire: formData.destinataire,
+          sujet: processedSubject,
+          corps: processedCorps,
           user_id: user?.id,
           statut: 'envoye',
           date_envoi: new Date().toISOString(),
@@ -150,6 +202,50 @@ export default function Emails() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
+                  {templates.length > 0 && (
+                    <div className="space-y-2">
+                      <Label htmlFor="template">Utiliser un template (optionnel)</Label>
+                      <Select
+                        value={selectedTemplateId}
+                        onValueChange={(value) => {
+                          setSelectedTemplateId(value);
+                          const template = templates.find(t => t.id === value);
+                          if (template) {
+                            setFormData({
+                              ...formData,
+                              sujet: template.sujet,
+                              corps: template.corps,
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">
+                            <div className="flex items-center">
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Aucun template
+                            </div>
+                          </SelectItem>
+                          {templates.map((template) => (
+                            <SelectItem key={template.id} value={template.id}>
+                              <div className="flex items-center">
+                                <FileText className="w-4 h-4 mr-2" />
+                                {template.nom}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedTemplateId && selectedTemplateId !== 'none' && (
+                        <p className="text-xs text-muted-foreground">
+                          💡 Les placeholders seront remplacés automatiquement lors de l'envoi
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="destinataire">Destinataire *</Label>
                     <Input

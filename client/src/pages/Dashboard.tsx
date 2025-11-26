@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { FileText, Upload, Mail, LogOut, User } from 'lucide-react';
 import { APP_TITLE } from '@/const';
+import NotificationCenter from '@/components/NotificationCenter';
 import { toast } from 'sonner';
 
 export default function Dashboard() {
@@ -54,12 +55,19 @@ export default function Dashboard() {
               </span>
             </div>
             <div className="flex items-center space-x-4">
+              <NotificationCenter />
               <div className="flex items-center space-x-2">
                 <User className="w-5 h-5 text-muted-foreground" />
                 <span className="text-sm font-medium">
                   {appUser?.prenom} {appUser?.nom}
                 </span>
               </div>
+              <Link href="/profile">
+                <Button variant="ghost" size="sm">
+                  <User className="w-4 h-4 mr-2" />
+                  Profil
+                </Button>
+              </Link>
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Déconnexion

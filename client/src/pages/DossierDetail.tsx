@@ -11,7 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { supabase } from '@/lib/supabase';
-import { FileText, Upload, Mail, ArrowLeft, Edit, Trash2, Calendar, User } from 'lucide-react';
+import { FileText, Upload, Mail, ArrowLeft, Edit, Trash2, Calendar, User, Download } from 'lucide-react';
+import { exportDossierToPDF } from '@/lib/pdfExport';
 import { toast } from 'sonner';
 import { APP_TITLE } from '@/const';
 
@@ -222,13 +223,30 @@ export default function DossierDetail() {
                   </div>
                 </div>
               </div>
-              <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Modifier
-                  </Button>
-                </DialogTrigger>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      await exportDossierToPDF(dossier, documents, emails);
+                      toast.success('PDF exporté avec succès!');
+                    } catch (error: any) {
+                      toast.error('Erreur d\'export PDF', {
+                        description: error.message,
+                      });
+                    }
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Exporter en PDF
+                </Button>
+                <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Modifier
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Modifier le dossier</DialogTitle>
@@ -273,7 +291,8 @@ export default function DossierDetail() {
                     </Button>
                   </div>
                 </DialogContent>
-              </Dialog>
+                </Dialog>
+              </div>
             </div>
           </CardHeader>
         </Card>

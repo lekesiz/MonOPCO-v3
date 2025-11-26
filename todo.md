@@ -161,3 +161,33 @@ CREATE TRIGGER email_templates_updated_at
 4. Yukarıdaki SQL script'ini yapıştırın
 5. "Run" butonuna tıklayın
 6. Başarılı olduğunu doğrulamak için "Table Editor" > "email_templates" kontrol edin
+
+
+## 🆕 Phase 3: Fonctionnalités Avancées
+
+### Intégration des Templates dans l'Envoi d'Emails
+- [x] Ajouter un sélecteur de template dans la page Emails
+- [x] Charger la liste des templates depuis la base de données
+- [x] Remplir automatiquement le sujet et le corps avec le template sélectionné
+- [x] Remplacer les placeholders avec les données réelles (nom, prénom, email, entreprise)
+- [x] Permettre l'édition après sélection du template
+- [x] Afficher les placeholders disponibles dans l'interface
+
+### Notifications en Temps Réel
+- [x] Configurer Supabase Realtime pour les tables documents et emails
+- [x] Créer un composant NotificationCenter
+- [x] Afficher les notifications dans le header
+- [x] Badge avec le nombre de notifications non lues
+- [x] Marquer les notifications comme lues
+- [x] Stocker les notifications dans une table dédiée
+- [x] Écouter les changements en temps réel (INSERT sur documents/emails)
+
+### Export PDF des Dossiers
+- [x] Installer la bibliothèque jsPDF ou similaire
+- [x] Créer une fonction d'export PDF pour un dossier
+- [x] Inclure les informations du dossier (titre, description, statut, dates)
+- [x] Inclure la liste des documents avec métadonnées
+- [x] Inclure la liste des emails avec détails
+- [x] Ajouter un bouton "Exporter en PDF" dans la page de détail du dossier
+- [x] Générer un PDF bien formaté avec logo et style
+- [x] Télécharger automatiquement le PDF généré
